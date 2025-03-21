@@ -1,13 +1,15 @@
 #Načtení, který nejede
 
-library(readxl)
-library(dplyr)
-library(tidyr)
-D <- read_excel("ELOVLs(1).xlsx", sheet = "data_all")
+#library(readxl)
+#library(dplyr)
+#library(tidyr)
+#D <- read_excel("ELOVLs(1).xlsx", sheet = "data_all")
 
 #Načtení/import, který snad jede
 
 library(readxl)
+library(dplyr)
+library(tidyr)
 D <- read_excel("ELOVLs (1).xlsx")
 View(ELOVLs_1_)
 
@@ -115,5 +117,68 @@ t.test(ratio_log ~ sex, data = D, var.equal = TRUE)
 
 wilcox.test(ratio_log ~ sex, data = D)
 
+#ANOVA
+
+a <- aov(ratio_log ~ gene, D)
+
+# post-hoc testování dvojic
+
+TukeyHSD(a) 
+
+# ověření předpokladu homogenity rozptylů
+
+#leveneTest(ratio_log ~ factor(gene), D) 
+
+kruskal.test(ratio_log ~ gene, D)
+
+# post-hoc testování dvojic
+
+pairwise.wilcox.test(D$ratio_log, D$gene,p.adjust.method = "BH")
+
+D %>% 
+  group_by(gene, sex) %>%
+  summarise(mean = mean(ratio_log, na.rm = TRUE))
+
+boxplot(ratio_log ~ sex + gene, D, las = 2)
+
+#Dvoucestná ANOVA
+
+a <- aov(ratio_log ~ sex + gene, D)
+summary(a)
+
+# model with interaction!
+b <- aov(ratio_log ~ sex * gene, D)
+summary(b)
+
+# post-hoc tests
+
+TukeyHSD(b)
+TukeyHSD(b, "sex")
+TukeyHSD(b, "gene")
+
+#Binární proměnná ve dvou skupinách - tenhle kós mi z nějakého důvodu nejede
+
+D <- D %>% mutate(ratio_increase_bin = factor(case_when(ratio <= 1 ~ "No",ratio > 1 ~ "Yes")))
+
+#T_bin <- as.data.frame(table(D$gene,
+#                             D$ratio_increase_bin))
+#barplot(Freq ~ Var2 + Var1, data = T_bin)
+
+D <- D %>% mutate(ratio_increase =
+                    case_when(ratio<=1 ~ "No",
+                              ratio <=5 ~ "Weak",
+                              ratio>5 ~ "Strong")) %>%
+  mutate(ratio_increase = factor(ratio_increase,
+                                 levels = c("No", "Weak", "Strong")))
+
+#S tabulkou, ale je tu nějaký problém, nejede to...
+
+table(D$ratio_increase)
+T <- D %>%
+  group_by(ratio_increase) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  # count(ratio_increase) %>% # nebo takto
+  filter(!is.na(ratio_increase))
 
 
