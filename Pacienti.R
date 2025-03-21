@@ -74,3 +74,46 @@ abline(0, 0, col="red")
 #Wilcoxonův neparametrická metoda - sedí to jako v prezentaci
 
 wilcox.test(D$ratio_log, mu = 0)
+
+
+#Párový dvouvýběrový t-test
+
+t.test(D$tumor, D$non.tumor, paired = TRUE)
+
+#Vykreslení histogramu
+
+hist(D$tumor - D$non.tumor)
+# nejede - lillie.test(D$tumor - D$non.tumor)
+
+#Boxplot - tumor/netumor
+
+boxplot(D$tumor, D$non.tumor)
+
+#Jeden - dohromady
+
+boxplot(D$tumor - D$non.tumor); abline(0, 0, col="red")
+
+#Wilcox
+
+wilcox.test(D$tumor, D$non.tumor, paired = TRUE)
+
+# Built-in independent t-test on wide data
+
+t.test(D$tumor, D$non.tumor)
+
+# Built-in independent t-test on long data
+
+t.test(expression ~ tissue, data = D)
+
+t.test(ratio_log ~ sex, data = D)
+# Welch’s t-test (default)
+
+t.test(ratio_log ~ sex, data = D, var.equal = TRUE)
+# Student’s t-test assumes identical variances
+
+#Mann-Whitney je tady obsažen ve Wilcoxovi
+
+wilcox.test(ratio_log ~ sex, data = D)
+
+
+
